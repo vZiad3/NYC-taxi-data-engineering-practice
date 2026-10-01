@@ -1,27 +1,30 @@
-# NYC Taxi — PySpark practice
+# NYC Taxi Data Engineering Practice
 
-A hands-on project using a 10M-row NYC Taxi CSV. I used PySpark to explore the data, check quality issues, create a Silver layer, and build summaries with Spark SQL.
+مشروع تدريبي اشتغلت فيه على بيانات رحلات التاكسي في نيويورك باستخدام **PySpark** و**Spark SQL**.
 
-## Flow
+## Dataset
 
-Raw CSV → Profiling / Data Quality → Silver Parquet → SQL Analytics → Gold → Zone Join
+الداتاسيت من [Kaggle](https://www.kaggle.com/datasets/neilclack/nyc-taxi-trip-data-google-public-data/data)، وفيه **10 مليون سجل**. كل سجل يمثل رحلة، وفيه وقت الركوب والنزول، عدد الركاب، المسافة، مبلغ الرحلة وطريقة الدفع.
 
-The notebook checks nulls, exact duplicates, passenger counts, distances, trip durations, average speeds, and fares. Silver removes duplicate copies and keeps records with non-negative duration. Zero passengers, zero distance, zero duration, and financial mismatches get flags.
+## What I did
 
-Gold contains monthly, payment, and pickup-location summaries. A left join adds zone and borough names to the pickup summary.
+- بدأت أفحص الـnulls والتكرار والقيم الغريبة.
+- حذفت النسخ المكررة والرحلات اللي وقت نزولها قبل وقت ركوبها.
+- خليت بعض الحالات، مثل المسافة أو المدة صفر، وأضفت لها flags.
+- حفظت بيانات Silver بصيغة Parquet.
+- استخدمت Spark SQL عشان أطلع ملخصات حسب الشهر، وطريقة الدفع، ومنطقة الركوب.
+- ربطت أرقام مناطق الركوب بأسمائها باستخدام ملف المناطق.
+
+Raw → Data Quality → Silver → SQL Analytics → Gold → Zone Join
+
+## Notes
+
+في التشغيل السابق لقينا **162 رحلة بتاريخ ركوب خارج 2018**. خليناها في المشروع، لذلك ملخص الأشهر ممكن يشمل تواريخ خارج 2018.
+
+البيانات الأصلية وملفات النتائج مو مرفوعة هنا بسبب حجمها. النسخة المرتبة من الـNotebook ما أعدنا تشغيلها بالكامل.
 
 ## Run
 
-1. Install PySpark and Jupyter in a Python environment with a compatible Java runtime.
-2. Put `taxi_trip_data.csv` and `taxi_zone_geo.csv` in `data/` (see its README).
-3. Open `notebooks/nyc_taxi_pipeline.ipynb` and run the cells in order from the project folder or `notebooks/`.
+تحتاج Python وJava متوافق مع PySpark، والمكتبات الموجودة في `requirements.txt`.
 
-Outputs are written to `output/silver/` and `output/gold/`. Re-running the write cells replaces those generated folders. Raw data and outputs are excluded from Git.
-
-## Known issues
-
-The previous run found **162 Silver records with pickup dates outside 2018**. They are retained, so the monthly summary may include months outside 2018. Negative fares and other suspicious values are also retained; these summaries should be read with those limitations in mind.
-
-Historical counts: 10,000,000 raw rows, 607,571 duplicate copies, and 9,392,290 Silver rows. These counts were recorded during the earlier project work and have not been verified by a new execution of this cleaned notebook.
-
-The attached notebook stopped at Data Quality. Later pipeline sections were restored from the project conversation. See [review notes](REVIEW_NOTES.md) for details.
+حط `taxi_trip_data.csv` و`taxi_zone_geo.csv` داخل مجلد `data`، ثم افتح `notebooks/nyc_taxi_pipeline.ipynb` وشغّل الخلايا بالترتيب. النتائج تنحفظ في `output`.
